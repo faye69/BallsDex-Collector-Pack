@@ -14,7 +14,7 @@ Add the following configuration:
 
 ```toml
 [[ballsdex.packages]]
-location = "git+https://github.com/YOUR_USERNAME/YOUR_REPO.git"
+location = "git+https://github.com/faye69/BallsDex-Collector-Pack.git"
 path = "collector.collector"
 enabled = true
 editable = false
@@ -32,7 +32,7 @@ editable = false
 
 # Collector Package
 [[ballsdex.packages]]
-location = "git+https://github.com/YOUR_USERNAME/YOUR_REPO.git"
+location = "git+https://github.com/faye69/BallsDex-Collector-Pack.git"
 path = "collector.collector"
 enabled = true
 editable = false
