@@ -8,7 +8,9 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 from bd_models.models import Ball, BallInstance, Player, balls as balls_cache
+from ballsdex.core.utils.transformers import TTLModelTransformer
 from collector.models import CollectorCard, CollectorRequirement, PlayerCollectorCard
+from settings.models import settings
 
 if TYPE_CHECKING:
     from ballsdex.core.bot import BallsDexBot
@@ -47,63 +49,66 @@ async def get_player_count(
 
 # ── Transformers ──────────────────────────────────────────────────────────────
 
-class CollectorBallTransformer(app_commands.Transformer):
+class CollectorBallTransformer(TTLModelTransformer[Ball]):
     """Autocomplete: only balls that have at least one collector requirement configured."""
 
-    async def transform(self, interaction: Interaction, value: str) -> Ball:
-        try:
-            return await Ball.objects.aget(pk=int(value), enabled=True)
-        except (Ball.DoesNotExist, ValueError):
-            raise app_commands.TransformerError(value, self.type, self)
+    name = settings.collectible_name
+    column = "country"
+    model = Ball
 
-    async def autocomplete(
-        self, interaction: Interaction, current: str
-    ) -> list[app_commands.Choice[str]]:
-        qs = Ball.objects.filter(
+    def get_queryset(self):
+        return Ball.objects.filter(
             collector_requirements__isnull=False, enabled=True
         ).distinct()
-        if current:
-            qs = qs.filter(country__icontains=current)
-        balls = [b async for b in qs.order_by("rarity")[:25]]
-        return [app_commands.Choice(name=b.country, value=str(b.pk)) for b in balls]
 
 
-class CollectorCardTransformer(app_commands.Transformer):
+class CollectorCardTransformer(TTLModelTransformer[CollectorCard]):
     """
     Autocomplete: enabled collector tiers.
-    If the user has already picked a collectible, only show tiers that have
-    a requirement configured for that ball.
+    If the user has already picked a collectible, only show tiers configured for that ball.
     """
 
-    async def transform(self, interaction: Interaction, value: str) -> CollectorCard:
-        try:
-            return await CollectorCard.objects.aget(pk=int(value), enabled=True)
-        except (CollectorCard.DoesNotExist, ValueError):
-            raise app_commands.TransformerError(value, self.type, self)
+    name = "collector tier"
+    column = "name"
+    model = CollectorCard
 
-    async def autocomplete(
-        self, interaction: Interaction, current: str
+    def get_queryset(self):
+        return CollectorCard.objects.filter(enabled=True)
+
+    def key(self, card: CollectorCard) -> str:
+        return f"{card.emoji + ' ' if card.emoji else ''}{card.name}"
+
+    async def load_items(self):
+        cards = [x async for x in self.get_queryset()]
+        self._card_ball_ids: dict[int, set[int]] = {}
+        async for req in CollectorRequirement.objects.filter(
+            card__enabled=True
+        ).values("card_id", "ball_id"):
+            self._card_ball_ids.setdefault(req["card_id"], set()).add(req["ball_id"])
+        return cards
+
+    async def get_options(
+        self, interaction: Interaction, value: str
     ) -> list[app_commands.Choice[str]]:
-        qs = CollectorCard.objects.filter(enabled=True)
+        await self.maybe_refresh()
 
         ball_id_str = getattr(interaction.namespace, "collectible", None)
-        if ball_id_str:
-            try:
-                qs = qs.filter(requirements__ball_id=int(ball_id_str))
-            except (ValueError, TypeError):
-                pass
+        try:
+            ball_id = int(ball_id_str) if ball_id_str else None
+        except (ValueError, TypeError):
+            ball_id = None
 
-        if current:
-            qs = qs.filter(name__icontains=current)
-
-        cards = [c async for c in qs.order_by("name")[:25]]
-        return [
-            app_commands.Choice(
-                name=f"{c.emoji + ' ' if c.emoji else ''}{c.name}",
-                value=str(c.pk),
-            )
-            for c in cards
-        ]
+        i = 0
+        choices: list[app_commands.Choice[str]] = []
+        for card in self.items.values():
+            if ball_id and ball_id not in self._card_ball_ids.get(card.pk, set()):
+                continue
+            if value.lower() in self.search_map[card]:
+                choices.append(app_commands.Choice(name=self.key(card), value=str(card.pk)))
+                i += 1
+                if i == 25:
+                    break
+        return choices
 
 
 CollectorBallTransform = app_commands.Transform[Ball, CollectorBallTransformer]

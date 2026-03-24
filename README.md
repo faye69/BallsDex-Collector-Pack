@@ -38,50 +38,12 @@ enabled = true
 editable = false
 ```
 
-### 2 — Fix the migration dependency
-
-Find your latest `bd_models` migration:
-
-```bash
-python admin_panel/manage.py showmigrations bd_models
-```
-
-Open this file:
-
-```
-.venv/lib/python3.x/site-packages/collector/migrations/0001_initial.py
-```
-
-Find the `dependencies` block and replace `"0001_initial"` with the last migration name from the command above:
-
-```python
-dependencies = [
-    ("bd_models", "0001_initial"),  # ← replace this with your latest
-]
-```
-
-### 3 — Register the Django app
-
-In your settings file (e.g. `admin_panel/settings/production.py`):
-
-```python
-INSTALLED_APPS += ["collector"]
-```
-
-### 4 — Register the bot package
-
-In `ballsdex/core/bot.py`, add to `DEFAULT_PACKAGES`:
-
-```python
-("collector", "collector.collector"),
-```
-
-### 5 — Run migrations
+### 2 — Run migrations
 
 ```bash
 python admin_panel/manage.py migrate
 ```
 
-### 6 — Restart the bot
+### 3 — Restart the bot
 
 `collector` will appear in the packages loaded log. Admin commands (`/admin collector`) wire up automatically — no extra steps needed.

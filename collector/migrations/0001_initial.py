@@ -5,16 +5,8 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
     initial = True
 
-    # -------------------------------------------------------------------------
-    # UPDATE THIS before running migrate on your bot!
-    #
-    # Find your latest bd_models migration:
-    #   python admin_panel/manage.py showmigrations bd_models
-    #
-    # Replace "0001_initial" below with the LAST migration listed.
-    # -------------------------------------------------------------------------
     dependencies = [
-        ("bd_models", "0001_initial"),
+        ("bd_models", "0014_alter_ball_options_alter_ballinstance_options_and_more"),
     ]
 
     operations = [

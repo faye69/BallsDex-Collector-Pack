@@ -10,3 +10,9 @@ async def setup(bot) -> None:
     admin_cog = bot.cogs.get("Admin")
     if admin_cog is not None and hasattr(admin_cog, "admin"):
         admin_cog.admin.add_command(collector_admin_group)
+
+
+async def teardown(bot) -> None:
+    admin_cog = bot.cogs.get("Admin")
+    if admin_cog is not None and hasattr(admin_cog, "admin"):
+        admin_cog.admin.remove_command("collector")
