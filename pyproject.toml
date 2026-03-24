@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ballsdex-collector"
+version = "1.0.0"
+description = "Tiered collector card system for BallsDex v3."
+license = "MIT"
+authors = [
+    { name = "faye" },
+]
+readme = "README.md"
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/faye69/BallsDex-Collecctor-Pack"
+Documentation = "https://github.com/faye69/BallsDex-Collecctor-Pack#readme"
+Issues = "https://github.com/faye69/BallsDex-Collecctor-Pack/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["collector*"]
