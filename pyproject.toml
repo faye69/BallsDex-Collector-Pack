@@ -14,9 +14,9 @@ readme = "README.md"
 dependencies = []
 
 [project.urls]
-Repository = "https://github.com/faye69/BallsDex-Collecctor-Pack"
-Documentation = "https://github.com/faye69/BallsDex-Collecctor-Pack#readme"
-Issues = "https://github.com/faye69/BallsDex-Collecctor-Pack/issues"
+Repository = "https://github.com/faye69/BallsDex-Collector-Pack"
+Documentation = "https://github.com/faye69/BallsDex-Collector-Pack#readme"
+Issues = "https://github.com/faye69/BallsDex-Collector-Pack/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
