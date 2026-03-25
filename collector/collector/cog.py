@@ -23,7 +23,16 @@ ITEMS_PER_PAGE = 5
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def ball_emoji(ball: Ball) -> str:
+def ball_emoji(ball: Ball, bot: "BallsDexBot | None" = None) -> str:
+    """
+    Return the Discord emoji string for a collectible.
+    Uses the bot's emoji cache when available so animated emojis
+    (GIFs) get the correct <a:name:id> format instead of <:name:id>.
+    """
+    if bot is not None:
+        emoji = bot.get_emoji(ball.emoji_id)
+        if emoji is not None:
+            return str(emoji)
     name = ball.country.lower().replace(" ", "_").replace("-", "_").replace("'", "")[:32]
     return f"<:{name}:{ball.emoji_id}>"
 
@@ -320,7 +329,7 @@ class Collector(commands.GroupCog, name="collector"):
             )
             for ball, req_line in chunk:
                 embed.add_field(
-                    name=f"{ball_emoji(ball)} {ball.country}",
+                    name=f"{ball_emoji(ball, self.bot)} {ball.country}",
                     value=req_line,
                     inline=False,
                 )
@@ -368,7 +377,7 @@ class Collector(commands.GroupCog, name="collector"):
         }
 
         embed = discord.Embed(
-            title=f"{ball_emoji(collectible)} {collectible.country} — Collector Tiers",
+            title=f"{ball_emoji(collectible, self.bot)} {collectible.country} — Collector Tiers",
             description=f"You own: **{owned:,}** {collectible.country}",
             color=discord.Color.gold(),
         )
@@ -498,7 +507,7 @@ class Collector(commands.GroupCog, name="collector"):
             ball = balls_cache.get(holder.ball_id) or holder.ball
             tier_em = f"{card.emoji} " if card.emoji else ""
             embed.add_field(
-                name=f"{ball_emoji(ball)} {ball.country} — {tier_em}{card.name}",
+                name=f"{ball_emoji(ball, self.bot)} {ball.country} — {tier_em}{card.name}",
                 value=f"Claimed <t:{int(holder.claimed_at.timestamp())}:R>",
                 inline=True,
             )
@@ -556,7 +565,7 @@ class Collector(commands.GroupCog, name="collector"):
                 )
 
         embed = discord.Embed(
-            title=f"{ball_emoji(collectible)} {collectible.country} — Your Progress",
+            title=f"{ball_emoji(collectible, self.bot)} {collectible.country} — Your Progress",
             description="\n".join(lines),
             color=discord.Color.gold(),
         )
