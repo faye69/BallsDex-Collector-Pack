@@ -38,12 +38,13 @@ enabled = true
 editable = false
 ```
 
-### 2 — Run migrations
+### 2 — Rebuild and start the bot
 
 ```bash
-python admin_panel/manage.py migrate
+docker compose build
+docker compose up -d
 ```
 
-### 3 — Restart the bot
+This will install the package, run migrations automatically, and start the bot. `collector` will appear in the packages loaded log.
 
-`collector` will appear in the packages loaded log. Admin commands (`/admin collector`) wire up automatically — no extra steps needed.
+Admin commands (`/admin collector`) wire up automatically — no extra steps needed.
